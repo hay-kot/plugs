@@ -34,3 +34,9 @@ type RetryError struct {
 func (r RetryError) Error() string {
 	return fmt.Errorf("plugin %s failed: %w - will retry", r.name, r.error).Error()
 }
+
+// IsRetryError checks if the error is a RetryError, this is a
+// convenience function and only calls errors.As
+func IsRetryError(err error) bool {
+	return errors.As(err, &RetryError{})
+}

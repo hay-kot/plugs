@@ -115,22 +115,28 @@ func (m *Manager) Start(ctx context.Context) error {
 	defer m.setStarted(false)
 
 	// block until the context is done
-	select {
-	case <-ctx.Done():
-		newTimer := time.NewTimer(m.opts.timeout)
-		defer newTimer.Stop()
-
-		m.opts.println("server received signal, shutting down")
+	for {
 		select {
-		case <-wgChannel:
-			m.opts.println("all plugins have stopped, shutting down")
-			return nil
-		case <-newTimer.C:
-			m.opts.println("timeout waiting for plugins to stop, shutting down")
-			return context.DeadlineExceeded
+		case <-ctx.Done():
+			newTimer := time.NewTimer(m.opts.timeout)
+			defer newTimer.Stop()
+
+			m.opts.println("server received signal, shutting down")
+			select {
+			case <-wgChannel:
+				m.opts.println("all plugins have stopped, shutting down")
+				return nil
+			case <-newTimer.C:
+				m.opts.println("timeout waiting for plugins to stop, shutting down")
+				return context.DeadlineExceeded
+			}
+		case err := <-pluginErrCh:
+			if IsRetryError(err) {
+				m.opts.println(err)
+				continue
+			}
+
+			return err
 		}
-	case err := <-pluginErrCh:
-		m.opts.println("plugin error:", err)
-		return err
 	}
 }
