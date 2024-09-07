@@ -28,7 +28,7 @@ func retry(ctx context.Context, p Plugin, retries int, pluginErrCh chan error) {
 		func() {
 			defer func() {
 				if r := recover(); r != nil {
-					writeErr(i, ErrPluginPanic)
+					writeErr(i, PanicError{name: p.Name()})
 				}
 			}()
 

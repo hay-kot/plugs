@@ -5,10 +5,15 @@ import (
 	"fmt"
 )
 
-var (
-	ErrManagerAlreadyStarted = errors.New("manager already started")
-	ErrPluginPanic           = errors.New("plugin panic")
-)
+var ErrManagerAlreadyStarted = errors.New("manager already started")
+
+type PanicError struct {
+	name string
+}
+
+func (p PanicError) Error() string {
+	return fmt.Errorf("plugin %s panicked", p.name).Error()
+}
 
 // StartupError is returned when the plugs.Manager encounters an error during startup
 type StartupError struct {

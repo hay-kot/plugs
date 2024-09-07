@@ -2,6 +2,7 @@ package plugs
 
 import (
 	"context"
+	"errors"
 	"os"
 	"os/signal"
 	"sync"
@@ -132,8 +133,14 @@ func (m *Manager) Start(ctx context.Context) error {
 			}
 		case err := <-pluginErrCh:
 			if IsRetryError(err) {
-				m.opts.println(err)
+				m.opts.println(err.Error())
 				continue
+			}
+
+			// ensure panics are printed out.
+			panicerr := PanicError{}
+			if errors.Is(err, &panicerr) {
+				m.opts.println(err.Error())
 			}
 
 			return err
