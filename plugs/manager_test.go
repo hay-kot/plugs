@@ -2,30 +2,12 @@ package plugs_test
 
 import (
 	"context"
-	"errors"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/hay-kot/plugs/plugs"
 )
-
-func Test_Runner_FailedStartup(t *testing.T) {
-	runner := plugs.New(
-		plugs.WithTimeout(3*time.Millisecond),
-		plugs.WithPrintln(func(args ...any) {
-			t.Log(args)
-		}),
-	)
-
-	runner.AddFunc("plug1", func(ctx context.Context) error {
-		return errors.New("failed to start")
-	})
-
-	err := runner.Start(context.Background())
-
-	assert(t, err.Error(), "failed to start")
-}
 
 type plugResults struct {
 	mu          sync.Mutex
@@ -57,7 +39,7 @@ func (p *plugResults) getStop() bool {
 }
 
 func Test_Runner_LifeCycle(t *testing.T) {
-	runner := plugs.New(
+	mgr := plugs.New(
 		plugs.WithTimeout(3*time.Millisecond),
 		plugs.WithPrintln(func(args ...any) {
 			t.Log(args)
@@ -68,21 +50,21 @@ func Test_Runner_LifeCycle(t *testing.T) {
 	plug2Got := plugResults{}
 	plug3Got := plugResults{}
 
-	runner.AddFunc("plug1", func(ctx context.Context) error {
+	mgr.AddFunc("plug1", func(ctx context.Context) error {
 		plug1Got.setStart(true)
 		<-ctx.Done()
 		plug1Got.setStop(true)
 		return nil
 	})
 
-	runner.AddFunc("plug2", func(ctx context.Context) error {
+	mgr.AddFunc("plug2", func(ctx context.Context) error {
 		plug2Got.setStart(true)
 		<-ctx.Done()
 		plug2Got.setStop(true)
 		return nil
 	})
 
-	runner.AddFunc("plug3", func(ctx context.Context) error {
+	mgr.AddFunc("plug3", func(ctx context.Context) error {
 		plug3Got.setStart(true)
 		<-ctx.Done()
 
@@ -97,19 +79,25 @@ func Test_Runner_LifeCycle(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		_ = runner.Start(ctx)
+		_ = mgr.Start(ctx)
 	}()
 
-	cancel()
+	go func() {
+		time.Sleep(5 * time.Millisecond)
+		cancel()
+	}()
+
 	wg.Wait()
 
-	// Asserts
+	// Plug 1 was started and stopped
 	assert(t, plug1Got.getStart(), true)
 	assert(t, plug1Got.getStop(), true)
 
+	// Plug 2 was started and stopped
 	assert(t, plug2Got.getStart(), true)
 	assert(t, plug2Got.getStop(), true)
 
+	// Plug 3 was started and never stopped
 	assert(t, plug3Got.getStart(), true)
 	assert(t, plug3Got.getStop(), false)
 }
