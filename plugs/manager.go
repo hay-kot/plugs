@@ -35,11 +35,11 @@ func New(opts ...RunnerOptFunc) *Manager {
 	}
 }
 
-func (m *Manager) Add(p Plugin) {
+func (m *Manager) Add(p ...Plugin) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	m.plugins = append(m.plugins, p)
+	m.plugins = append(m.plugins, p...)
 }
 
 func (m *Manager) AddFunc(name string, start func(ctx context.Context) error) {
@@ -125,10 +125,10 @@ func (m *Manager) Start(ctx context.Context) error {
 			m.opts.println("server received signal, shutting down")
 			select {
 			case <-wgChannel:
-				m.opts.println("all plugins have stopped, shutting down")
+				m.opts.println("all plugins have stopped")
 				return nil
 			case <-newTimer.C:
-				m.opts.println("timeout waiting for plugins to stop, shutting down")
+				m.opts.println("timeout waiting for plugins to stop, exiting")
 				return context.DeadlineExceeded
 			}
 		case err := <-pluginErrCh:
