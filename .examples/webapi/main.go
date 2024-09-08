@@ -1,24 +1,22 @@
-# plugs
+package main
 
-Plugin and Startup System for Go Projects
+import (
+	"context"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"syscall"
 
-[Go Reference](https://pkg.go.dev/github.com/hay-kot/plugs)
+	"github.com/hay-kot/plugs/plugs"
+)
 
-## Install
+func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
 
-```bash
-go get -u github.com/hay-kot/plugs
-```
-
-## Features
-
-- Plugin based architecture for running multiple services in the same binary (ex: run two web servers)
-- Graceful shutdowns via context and os signals
-- Retry mechinism for restart services that have failed
-
-## Examples
-
-```go
 func run() error {
 	mgr := plugs.New(
 		plugs.WithPrintln(log.Println),
@@ -44,11 +42,17 @@ func (s *server) Name() string {
 }
 
 func (s *server) Start(ctx context.Context) error {
+	shutdown := make(chan struct{})
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("OK"))
+	})
+
+	mux.HandleFunc("/shutdown", func(w http.ResponseWriter, r *http.Request) {
+		close(shutdown)
 	})
 
 	server := &http.Server{
@@ -70,4 +74,3 @@ func (s *server) Start(ctx context.Context) error {
 	log.Printf("server-%d stopped", s.port)
 	return err
 }
-```
