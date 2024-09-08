@@ -132,7 +132,7 @@ func (m *Manager) Start(ctx context.Context) error {
 				return context.DeadlineExceeded
 			}
 		case err := <-pluginErrCh:
-			if IsRetryError(err) {
+			if isRetryError(err) {
 				m.opts.println(err.Error())
 				continue
 			}

@@ -11,7 +11,7 @@ func retry(ctx context.Context, p Plugin, retries int, pluginErrCh chan error) {
 	writeErr := func(i int, err error) {
 		if i != retries-1 {
 			// if retries are not exhausted, write a RetryError
-			err = RetryError{
+			err = retryError{
 				name:  p.Name(),
 				error: err,
 				retry: i + 1,

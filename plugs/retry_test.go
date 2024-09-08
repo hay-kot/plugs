@@ -34,19 +34,19 @@ func Test_retry_retriesOnPanic(t *testing.T) {
 		fourth = <-errch
 	)
 
-	if !IsRetryError(first) {
+	if !isRetryError(first) {
 		t.Errorf("expected first error to be a RetryError")
 	}
 
-	if !IsRetryError(second) {
+	if !isRetryError(second) {
 		t.Errorf("expected second error to be a RetryError")
 	}
 
-	if !IsRetryError(third) {
+	if !isRetryError(third) {
 		t.Errorf("expected third error to be a RetryError")
 	}
 
-	if IsRetryError(fourth) {
+	if isRetryError(fourth) {
 		t.Errorf("expected fourth error to be a panic error")
 	}
 }
@@ -77,11 +77,11 @@ func Test_retry_retriesOnError(t *testing.T) {
 		second = <-errch
 	)
 
-	if !IsRetryError(first) {
+	if !isRetryError(first) {
 		t.Errorf("expected first error to be a RetryError")
 	}
 
-	if IsRetryError(second) {
+	if isRetryError(second) {
 		t.Errorf("expected second error to be a standard error")
 	}
 }
