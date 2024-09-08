@@ -15,15 +15,15 @@ type Manager struct {
 	started  bool
 	plugins  []Plugin
 	shutdown chan struct{}
-	opts     *runnerOpts
+	opts     *managerOpts
 }
 
-func New(opts ...RunnerOptFunc) *Manager {
-	o := &runnerOpts{
+func New(opts ...ManagerOptFunc) *Manager {
+	o := &managerOpts{
 		signals: []os.Signal{os.Interrupt, syscall.SIGTERM},
 		timeout: 5 * time.Second,
 		println: func(v ...any) {}, // NOOP
-		restart: 1,
+		retries: 0,
 	}
 	for _, opt := range opts {
 		opt(o)
@@ -103,7 +103,7 @@ func (m *Manager) Start(ctx context.Context) error {
 				wg.Done()
 			}()
 
-			retry(ctx, p, m.opts.restart, pluginErrCh)
+			retry(ctx, p, m.opts.retries, pluginErrCh)
 		}()
 	}
 

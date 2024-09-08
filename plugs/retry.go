@@ -26,7 +26,7 @@ func retry(ctx context.Context, p Plugin, retries int, pluginErrCh chan error) {
 		}
 	}
 
-	for i := 0; i < retries; i++ {
+	for i := 0; i < retries || i == 0; i++ {
 		func() {
 			defer func() {
 				if r := recover(); r != nil {

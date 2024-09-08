@@ -5,14 +5,14 @@ import (
 	"time"
 )
 
-type runnerOpts struct {
+type managerOpts struct {
 	signals []os.Signal
 	timeout time.Duration
 	println func(...any)
-	restart int
+	retries int
 }
 
-type RunnerOptFunc func(*runnerOpts)
+type ManagerOptFunc func(*managerOpts)
 
 // WithSignals provides a list of signals to listen for
 // when starting the server that will cancel the context
@@ -22,8 +22,8 @@ type RunnerOptFunc func(*runnerOpts)
 //   - syscall.SIGTERM
 //
 // Multiple calls to this option will override the previous
-func WithSignals(signals ...os.Signal) RunnerOptFunc {
-	return func(o *runnerOpts) {
+func WithSignals(signals ...os.Signal) ManagerOptFunc {
+	return func(o *managerOpts) {
 		o.signals = signals
 	}
 }
@@ -32,21 +32,23 @@ func WithSignals(signals ...os.Signal) RunnerOptFunc {
 // plugins to stop before shutting down.
 //
 // Defaults to 5 seconds
-func WithTimeout(timeout time.Duration) RunnerOptFunc {
-	return func(o *runnerOpts) {
+func WithTimeout(timeout time.Duration) ManagerOptFunc {
+	return func(o *managerOpts) {
 		o.timeout = timeout
 	}
 }
 
 // WithPrintln provides a function to print messages
-func WithPrintln(fn func(...any)) RunnerOptFunc {
-	return func(o *runnerOpts) {
+func WithPrintln(fn func(...any)) ManagerOptFunc {
+	return func(o *managerOpts) {
 		o.println = fn
 	}
 }
 
-func WithRestart(times int) RunnerOptFunc {
-	return func(o *runnerOpts) {
-		o.restart = times
+// WithRetries provides the number of times a plugin should be retried when it fails. Failure is
+// determined by an error, or a panic.
+func WithRetries(times int) ManagerOptFunc {
+	return func(o *managerOpts) {
+		o.retries = times
 	}
 }
