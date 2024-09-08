@@ -55,10 +55,6 @@ func (s *server) Start(ctx context.Context) error {
 		close(shutdown)
 	})
 
-	mux.HandleFunc("/panic", func(w http.ResponseWriter, r *http.Request) {
-		panic("server panic")
-	})
-
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", s.port),
 		Handler: mux,
