@@ -32,6 +32,11 @@ func retry(ctx context.Context, p Plugin, retries int, pluginErrCh chan error) {
 				}
 			}()
 
+			// is channel close?
+			if ctx.Err() != nil {
+				return
+			}
+
 			err := p.Start(ctx)
 			if err != nil {
 				writeErr(i, err)
