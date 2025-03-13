@@ -20,7 +20,7 @@ func main() {
 func run() error {
 	mgr := plugs.New(
 		plugs.WithPrintln(log.Println),
-		plugs.WithRestart(3),
+		plugs.WithRetries(3),
 		plugs.WithSignals(os.Interrupt, syscall.SIGTERM),
 	)
 
@@ -60,6 +60,11 @@ func (s *server) Start(ctx context.Context) error {
 		Handler: mux,
 	}
 
+	log.Printf("registering endpoints")
+	log.Printf("http://localhost:%d/health", s.port)
+	log.Printf("http://localhost:%d/shutdown", s.port)
+
+	// Print endpoints
 	go func() {
 		select {
 		case <-shutdown:
