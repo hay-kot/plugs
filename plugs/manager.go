@@ -85,8 +85,9 @@ func (m *Manager) Start(ctx context.Context) error {
 
 	// Start Plugins
 	var (
-		wg          = sync.WaitGroup{}
-		pluginErrCh = make(chan error)
+		wg = sync.WaitGroup{}
+		// Buffer error channel based on plugin count and retry count to prevent blocking
+		pluginErrCh = make(chan error, len(m.plugins)*max(1, m.opts.retries))
 		wgChannel   = make(chan struct{})
 	)
 
@@ -98,13 +99,13 @@ func (m *Manager) Start(ctx context.Context) error {
 	}()
 
 	for _, p := range m.plugins {
-		go func() {
+		go func(p Plugin) {
 			defer func() {
 				wg.Done()
 			}()
 
 			retry(ctx, p, m.opts.retries, pluginErrCh)
-		}()
+		}(p)
 	}
 
 	go func() {
