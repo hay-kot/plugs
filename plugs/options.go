@@ -45,9 +45,10 @@ func WithPrintln(fn func(...any)) ManagerOptFunc {
 	}
 }
 
-// WithRetries provides the number of times a plugin should be retried when it fails. Failure is
-// determined by an error, or a panic.
-func WithRetries(times int) ManagerOptFunc {
+// WithRestarts provides the number of times a plugin should be retried when it fails. Failure is
+// determined by an error, or a panic. When the number of retries is exceeded, the plugin will be
+// stopped and the manager will shutdown.
+func WithRestarts(times int) ManagerOptFunc {
 	return func(o *managerOpts) {
 		o.retries = times
 	}

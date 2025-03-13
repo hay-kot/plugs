@@ -20,7 +20,7 @@ func main() {
 func run() error {
 	mgr := plugs.New(
 		plugs.WithPrintln(log.Println),
-		plugs.WithRetries(3),
+		plugs.WithRestarts(3),
 		plugs.WithSignals(os.Interrupt, syscall.SIGTERM),
 	)
 
